@@ -4,7 +4,6 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-
 AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'dev'
@@ -14,6 +13,8 @@ API_AUDIENCE = 'dev'
 AuthError Exception
 A standardized way to communicate auth failure modes
 '''
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
@@ -30,6 +31,8 @@ class AuthError(Exception):
         it should raise an AuthError if the header is malformed
     return the token part of the header
 '''
+
+
 def get_token_auth_header():
     if 'Authorization' not in request.headers:
         abort(401)
@@ -44,6 +47,7 @@ def get_token_auth_header():
 
     return header_parts[1]
 
+
 '''
 @DONE implement check_permissions(permission, payload) method
     @INPUTS
@@ -55,6 +59,8 @@ def get_token_auth_header():
     it should raise an AuthError if the requested permission string is not in the payload permissions array
     return true otherwise
 '''
+
+
 def check_permissions(permission, payload):
     if 'permissions' not in payload:
         raise AuthError({
@@ -70,6 +76,7 @@ def check_permissions(permission, payload):
 
     return True
 
+
 '''
 @DONE implement verify_decode_jwt(token) method
     @INPUTS
@@ -83,6 +90,8 @@ def check_permissions(permission, payload):
 
     !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
 '''
+
+
 def verify_decode_jwt(token):
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
@@ -96,7 +105,7 @@ def verify_decode_jwt(token):
             'description': 'Authorization malformed.'
         }, 401)
 
-    for key  in jwks['keys']:
+    for key in jwks['keys']:
         if key['kid'] == unverified_header['kid']:
             rsa_key = {
                 'kty': key['kty'],
@@ -137,6 +146,7 @@ def verify_decode_jwt(token):
         'description': 'Unable to find the appropriate key.'
     }, 400)
 
+
 '''
 @DONE implement @requires_auth(permission) decorator method
     @INPUTS
@@ -147,6 +157,8 @@ def verify_decode_jwt(token):
     it should use the check_permissions method validate claims and check the requested permission
     return the decorator which passes the decoded payload to the decorated method
 '''
+
+
 def requires_auth(permission=''):
     def requires_auth_decorator(f):
         @wraps(f)
@@ -157,4 +169,5 @@ def requires_auth(permission=''):
             return f(payload, *args, **kwargs)
 
         return wrapper
+
     return requires_auth_decorator

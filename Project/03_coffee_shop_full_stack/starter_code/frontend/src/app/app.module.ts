@@ -14,6 +14,8 @@ import { AuthService } from './services/auth.service';
 
 import { HttpClientModule } from '@angular/common/http';
 
+import { AuthModule } from '@auth0/auth0-angular';
+
 import { from } from 'rxjs';
 
 @NgModule({
@@ -23,7 +25,11 @@ import { from } from 'rxjs';
     BrowserModule,
     IonicModule.forRoot(),
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    AuthModule.forRoot({
+      domain: 'dev-k3iu6ckt.us.auth0.com',
+      clientId: '6ll0Fh6wZaodKDEfSDVq3xnLgf8SG19P'
+    }),
   ],
   providers: [
     StatusBar,
