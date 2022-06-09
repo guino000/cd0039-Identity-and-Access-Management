@@ -56,8 +56,8 @@ def get_drinks():
 
 @app.route('/drinks-detail', methods=['GET'])
 @requires_auth('get:drinks-detail')
-def get_drinks_detail():
-    drinks = [d.short() for d in Drink.query.all()]
+def get_drinks_detail(self):
+    drinks = [d.long() for d in Drink.query.all()]
 
     if len(drinks) == 0:
         abort(404)
@@ -82,24 +82,24 @@ def get_drinks_detail():
 
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def create_drink():
+def create_drink(self):
     body = request.get_json()
     new_title = body.get('title', None)
     new_recipe = body.get('recipe', None)
 
     try:
-        drink = Drink(
-            new_title,
-            new_recipe
-        )
-
+        drink = Drink()
+        drink.title = new_title
+        drink.recipe = json.dumps(new_recipe)
         drink.insert()
 
         return jsonify({
             'success': True,
-            'drinks': [drink]
+            'drinks': [drink.long()]
         })
-    except:
+    except Exception as e:
+        print(e)
+        db.session.rollback()
         abort(422)
 
 
@@ -118,7 +118,7 @@ def create_drink():
 
 @app.route('/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def edit_drink(drink_id):
+def edit_drink(self, drink_id):
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
 
     if drink is None:
@@ -130,12 +130,12 @@ def edit_drink(drink_id):
 
     try:
         drink.title = new_title if new_title is not None else drink.title
-        drink.recipe = new_recipe if new_recipe is not None else drink.recipe
+        drink.recipe = str(new_recipe) if new_recipe is not None else drink.recipe
         db.session.commit()
 
         return jsonify({
             'success': True,
-            'drinks': [drink]
+            'drinks': [drink.long()]
         })
     except:
         db.session.rollback()
@@ -156,7 +156,7 @@ def edit_drink(drink_id):
 
 @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
-def delete_drink(drink_id):
+def delete_drink(self, drink_id):
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
 
     if drink is None:
@@ -184,7 +184,7 @@ def unprocessable(error):
     return jsonify({
         "success": False,
         "error": 422,
-        "message": "unprocessable"
+        "message": f"unprocessable: {error}"
     }), 422
 
 
@@ -236,3 +236,11 @@ def unauthorized(error):
         'error': 403,
         'message': 'unauthorized'
     }), 403
+
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+        'success': False,
+        'error': 401,
+        'message': 'unauthorized'
+    }), 401
