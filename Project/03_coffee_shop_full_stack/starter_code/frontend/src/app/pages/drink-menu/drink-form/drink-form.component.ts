@@ -54,8 +54,4 @@ export class DrinkFormComponent implements OnInit {
     this.drinkService.deleteDrink(this.drink);
     this.closeModal();
   }
-
-  logForm() {
-    return
-  }
 }
